@@ -1,0 +1,79 @@
+#version 430
+
+layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
+
+// L2-normalized dense descriptors, (w/8) x (h/8) x 256
+layout(r32f, binding = 0) readonly uniform image2DArray uDescriptors;
+
+// binding 2: selected keypoints as { x, y } uint pairs (written by Main.cpp after top-K)
+layout(std430, binding = 2) readonly buffer KeypointBuffer
+{
+    uvec2 keypoints[];
+};
+
+// binding 3: output, keypointCount * 256 floats, keypoint-major
+layout(std430, binding = 3) buffer DescriptorOutputBuffer
+{
+    float outDescriptors[];
+};
+
+uniform uint uKeypointCount;
+
+
+void main()
+{
+    uint k = gl_GlobalInvocationID.x;
+
+    if (k >= uKeypointCount)
+        return;
+
+    ivec3 size = imageSize(uDescriptors);   // x = w/8, y = h/8, z = 256
+    int w = size.x;
+    int h = size.y;
+    int channels = size.z;
+
+    vec2 kp = vec2(keypoints[k]);
+
+    //-----------Same mapping as sample_descriptors() with s = 8, align_corners = True---------//
+
+    vec2 pos = (kp - 3.5) / vec2(float(w) * 8.0 - 4.5, float(h) * 8.0 - 4.5);
+    pos *= vec2(float(w - 1), float(h - 1));
+
+    pos = clamp(pos, vec2(0.0), vec2(float(w - 1), float(h - 1)));
+
+    ivec2 p0 = ivec2(floor(pos));
+    ivec2 p1 = min(p0 + ivec2(1), ivec2(w - 1, h - 1));
+    vec2 f = pos - vec2(p0);
+
+    float w00 = (1.0 - f.x) * (1.0 - f.y);
+    float w10 = f.x * (1.0 - f.y);
+    float w01 = (1.0 - f.x) * f.y;
+    float w11 = f.x * f.y;
+
+    uint base = k * uint(channels);
+
+    //-----------Bilinear interpolation---------//
+
+    float sumSq = 0.0;
+
+    for (int c = 0; c < channels; c++)
+    {
+        float v =
+            w00 * imageLoad(uDescriptors, ivec3(p0.x, p0.y, c)).r +
+            w10 * imageLoad(uDescriptors, ivec3(p1.x, p0.y, c)).r +
+            w01 * imageLoad(uDescriptors, ivec3(p0.x, p1.y, c)).r +
+            w11 * imageLoad(uDescriptors, ivec3(p1.x, p1.y, c)).r;
+
+        outDescriptors[base + uint(c)] = v;
+        sumSq += v * v;
+    }
+
+    //-----------Re-normalize (F.normalize, eps = 1e-12)---------//
+
+    float invNorm = 1.0 / max(sqrt(sumSq), 1e-12);
+
+    for (int c = 0; c < channels; c++)
+    {
+        outDescriptors[base + uint(c)] *= invNorm;
+    }
+}

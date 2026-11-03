@@ -1,0 +1,75 @@
+
+#version 430
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(r32f, binding = 0) readonly uniform image2DArray uInputImage;
+layout(r32f, binding = 1) writeonly uniform image2DArray uOutputImage;
+
+layout(std430, binding = 0) readonly buffer WeightBuffer
+{
+    float Weights[];
+};
+
+layout(std430, binding = 1) readonly buffer BiasBuffer
+{
+    float biases[];
+};
+
+
+uniform int uInputChannels;
+uniform int uOutputChannels;
+uniform int uKernelSize;
+
+
+void main()
+{
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+
+    int outputChannel = int(gl_GlobalInvocationID.z);
+
+    ivec3 inputSize = imageSize(uInputImage);
+    ivec3 outputSize = imageSize(uOutputImage);
+
+    if (pixel.x >= outputSize.x ||
+        pixel.y >= outputSize.y ||
+        outputChannel >= uOutputChannels ||
+        outputChannel >= outputSize.z)
+        return;
+
+    float sum = biases[outputChannel];
+
+    int padding = uKernelSize / 2;
+
+    for (int inputChannel = 0; inputChannel < uInputChannels; inputChannel++)
+    {
+        for (int ky = 0; ky < uKernelSize; ky++)
+        {
+            for (int kx = 0; kx < uKernelSize; kx++)
+            {
+                ivec2 inputPosition = pixel + ivec2(kx - padding, ky - padding);
+
+                if (inputPosition.x >= 0 && inputPosition.x < inputSize.x &&
+                    inputPosition.y >= 0 && inputPosition.y < inputSize.y)
+                {
+                    int weightIndex =
+                        (((outputChannel * uInputChannels + inputChannel) * uKernelSize + ky)
+                        * uKernelSize + kx);
+
+                    float inputValue = imageLoad(
+                        uInputImage,
+                        ivec3(inputPosition, inputChannel)
+                    ).r;
+
+                    sum += Weights[weightIndex] * inputValue;
+                }
+            }
+        }
+    }
+
+    imageStore(
+        uOutputImage,
+        ivec3(pixel, outputChannel),
+        vec4(sum, 0.0, 0.0, 0.0)
+    );
+}

@@ -1,0 +1,63 @@
+
+#version 430
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(r32f, binding = 0) readonly uniform image2D uInputScores;
+layout(r32f, binding = 1) readonly uniform image2D uMaximumMask;
+layout(r32f, binding = 2) writeonly uniform image2D uOutputScores;
+
+uniform float uThreshold;
+uniform int uBorder;
+
+
+void main()
+{
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+
+    ivec2 imageSizeValue = imageSize(uInputScores);
+
+    if (pixel.x >= imageSizeValue.x || pixel.y >= imageSizeValue.y)
+        return;
+
+
+    //-----------Read Score and Mask---------//
+
+    float score = imageLoad(
+        uInputScores,
+        pixel
+    ).r;
+
+    float maxMask = imageLoad(
+        uMaximumMask,
+        pixel
+    ).r;
+
+
+    //-----------Border Removal---------//
+
+    bool insideBorder =
+        pixel.x >= uBorder &&
+        pixel.x < imageSizeValue.x - uBorder &&
+        pixel.y >= uBorder &&
+        pixel.y < imageSizeValue.y - uBorder;
+
+
+    //-----------Threshold + NMS---------//
+
+    float outputScore = 0.0;
+
+    if (maxMask > 0.5 &&
+        score > uThreshold &&
+        insideBorder)
+    {
+        outputScore = score;
+    }
+
+
+    imageStore(
+        uOutputScores,
+        pixel,
+        vec4(outputScore, 0.0, 0.0, 0.0)
+    );
+}

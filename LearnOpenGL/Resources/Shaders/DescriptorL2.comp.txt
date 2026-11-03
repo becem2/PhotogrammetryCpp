@@ -1,0 +1,26 @@
+#version 430
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(r32f, binding = 0) readonly  uniform image2DArray uIn;
+layout(r32f, binding = 1) writeonly uniform image2DArray uOut;
+
+uniform float uEpsilon;   // set from Main.cpp (1e-12f), matches F.normalize eps
+
+void main()
+{
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    ivec3 size = imageSize(uIn);
+    if (pixel.x >= size.x || pixel.y >= size.y) return;
+
+    float sumSq = 0.0;
+    for (int c = 0; c < size.z; c++) {
+        float v = imageLoad(uIn, ivec3(pixel, c)).r;
+        sumSq += v * v;
+    }
+    float invNorm = 1.0 / max(sqrt(sumSq), uEpsilon);
+
+    for (int c = 0; c < size.z; c++) {
+        float v = imageLoad(uIn, ivec3(pixel, c)).r;
+        imageStore(uOut, ivec3(pixel, c), vec4(v * invNorm, 0, 0, 0));
+    }
+}

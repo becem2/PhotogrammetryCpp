@@ -1,0 +1,58 @@
+
+#version 430
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(r32f, binding = 0) readonly uniform image2D uInputMask;
+layout(r32f, binding = 1) writeonly uniform image2D uSuppressionMask;
+
+uniform int uNmsRadius;
+
+
+void main()
+{
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+
+    ivec2 imageSizeValue = imageSize(uInputMask);
+
+    if (pixel.x >= imageSizeValue.x || pixel.y >= imageSizeValue.y)
+        return;
+
+
+    //-----------Calculate Suppression Mask---------//
+
+    float suppressed = 0.0;
+
+    for (int dy = -uNmsRadius; dy <= uNmsRadius; dy++)
+    {
+        for (int dx = -uNmsRadius; dx <= uNmsRadius; dx++)
+        {
+            ivec2 neighbor = pixel + ivec2(dx, dy);
+
+            if (neighbor.x < 0 || neighbor.x >= imageSizeValue.x ||
+                neighbor.y < 0 || neighbor.y >= imageSizeValue.y)
+                continue;
+
+            float value = imageLoad(
+                uInputMask,
+                neighbor
+            ).r;
+
+            if (value > 0.5)
+            {
+                suppressed = 1.0;
+                break;
+            }
+        }
+
+        if (suppressed > 0.5)
+            break;
+    }
+
+
+    imageStore(
+        uSuppressionMask,
+        pixel,
+        vec4(suppressed, 0.0, 0.0, 0.0)
+    );
+}

@@ -1,0 +1,43 @@
+#version 430
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+
+layout(r32f, binding = 0) readonly uniform image2D uFilteredScores;
+
+// binding 2: atomic keypoint counter (Main.cpp resets it to 0 each image)
+layout(std430, binding = 2) buffer CounterBuffer
+{
+    uint keypointCount;
+};
+
+// binding 3: candidates, 2 uints each = { linearIndex (y*width+x), floatBitsToUint(score) }
+layout(std430, binding = 3) writeonly buffer CandidateBuffer
+{
+    uvec2 candidates[];
+};
+
+uniform uint uCapacity;
+
+
+void main()
+{
+    ivec2 pixel = ivec2(gl_GlobalInvocationID.xy);
+    ivec2 size = imageSize(uFilteredScores);
+
+    if (pixel.x >= size.x || pixel.y >= size.y)
+        return;
+
+    float score = imageLoad(uFilteredScores, pixel).r;
+
+    // ThresholdBorder writes 0.0 for everything that is not a keypoint
+    if (score <= 0.0)
+        return;
+
+    uint slot = atomicAdd(keypointCount, 1u);
+
+    if (slot < uCapacity)
+    {
+        uint linearIndex = uint(pixel.y) * uint(size.x) + uint(pixel.x);
+        candidates[slot] = uvec2(linearIndex, floatBitsToUint(score));
+    }
+}

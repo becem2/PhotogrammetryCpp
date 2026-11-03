@@ -10,6 +10,7 @@
   <img src="https://img.shields.io/badge/GLSL-Compute%20Shaders-orange?style=flat-square" />
   <img src="https://img.shields.io/badge/GPU-AMD%20RX%206650%20XT-ED1C24?style=flat-square" />
   <img src="https://img.shields.io/badge/Status-In%20Development-yellow?style=flat-square" />
+  <img src="https://img.shields.io/badge/Progress-1%2F11%20Steps-orange?style=flat-square" />
 </p>
 
 ## About
@@ -66,6 +67,7 @@ The pipeline is built around four major components:
 
 - [SuperPoint — DeTone et al. (2018)](https://arxiv.org/abs/1712.07629)
 - [SuperGlue — Sarlin et al. (2020)](https://arxiv.org/abs/1911.11763)
+- [3D Gaussian Splatting — Kerbl et al. (2023)](https://arxiv.org/abs/2308.04079)
 
 ## Author
 

@@ -5,10 +5,6 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/C%2B%2B-17-blue?style=flat-square" />
-  <img src="https://img.shields.io/badge/OpenGL-GPU%20Computing-red?style=flat-square" />
-  <img src="https://img.shields.io/badge/GLSL-Compute%20Shaders-orange?style=flat-square" />
-  <img src="https://img.shields.io/badge/GPU-AMD%20RX%206650%20XT-ED1C24?style=flat-square" />
   <img src="https://img.shields.io/badge/Status-In%20Development-yellow?style=flat-square" />
   <img src="https://img.shields.io/badge/Progress-1%2F11%20Steps-orange?style=flat-square" />
 </p>

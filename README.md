@@ -59,11 +59,16 @@ The pipeline is built around four major components:
 - [ ] 3D Gaussian Splatting implementation
 - [ ] Complete pipeline integration
 
+
+## Reference Images
+
+Refer to the [`ReferenceImages`](./ReferenceImages/) folder for explanatory diagrams and visual representations of the pipeline architecture and its individual components.
+
+
 ## References
 
 - [SuperPoint — DeTone et al. (2018)](https://arxiv.org/abs/1712.07629)
 - [SuperGlue — Sarlin et al. (2020)](https://arxiv.org/abs/1911.11763)
-- [3D Gaussian Splatting — Kerbl et al. (2023)](https://arxiv.org/abs/2308.04079)
 
 ## Author
 
@@ -74,5 +79,5 @@ The pipeline is built around four major components:
 ---
 
 <p align="center">
-  <i>Building the entire pipeline, one algorithm at a time.</i>
+  <i>He who spares the wicked, harms the good .</i>
 </p>

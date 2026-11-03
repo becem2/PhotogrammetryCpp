@@ -47,7 +47,7 @@ The pipeline is built around four major components:
 
 ## Roadmap
 
-- [x] SuperPoint — C++ / GLSL implementation
+- [x] ~~**SuperPoint — C++ / GLSL implementation**~~
 - [ ] SuperPoint — GPU optimization
 - [ ] SuperGlue — C++ / GLSL implementation
 - [ ] SuperPoint + SuperGlue integration

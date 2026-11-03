@@ -42,9 +42,6 @@
     <ClCompile Include="Main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Glad\src\glad.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ComputeShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,45 +51,15 @@
     <ClCompile Include="SuperPoint.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="glad.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="LearnOpenGL.vcxproj.fixed" />
     <None Include="LearnOpenGL.vcxproj.fixed2" />
-    <None Include="objectShader.vs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="objectShader.fs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="lightingShader.vs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="lightingShader.fs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Ambient.vs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Ambient.fs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="MultipleLights.vs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Model.vs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="Model.fs">
-      <Filter>Resource Files</Filter>
-    </None>
     <None Include="Basic.fs" />
     <None Include="Basic.vs" />
-    <None Include="SingleColor.fs">
-      <Filter>Resource Files</Filter>
-    </None>
-    <None Include="GrayScale.comp">
-      <Filter>Resource Files</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -107,15 +74,5 @@
     <ClInclude Include="SuperPoint.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="LearnOpenGL.rc">
-      <Filter>Resource Files</Filter>
-    </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="MultipleLights.fs">
-      <Filter>Resource Files</Filter>
-    </Text>
   </ItemGroup>
 </Project>

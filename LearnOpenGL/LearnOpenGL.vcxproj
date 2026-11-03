@@ -156,41 +156,24 @@
     <ClCompile Include="..\..\..\..\..\..\ThirdPartyLibraries\Include\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="..\..\..\..\..\..\ThirdPartyLibraries\Include\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\..\..\..\..\..\ThirdPartyLibraries\Include\imgui\imgui_widgets.cpp" />
-    <ClCompile Include="..\..\Glad\src\glad.c" />
     <ClCompile Include="ComputeShader.cpp" />
+    <ClCompile Include="glad.c" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="SuperPoint.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Ambient.fs" />
-    <None Include="Ambient.vs" />
     <None Include="Basic.fs" />
     <None Include="Basic.vs" />
-    <None Include="GrayScale.comp" />
     <None Include="LearnOpenGL.vcxproj.fixed" />
     <None Include="LearnOpenGL.vcxproj.fixed2" />
-    <None Include="lightingShader.fs" />
-    <None Include="lightingShader.vs" />
-    <None Include="Model.fs" />
-    <None Include="Model.vs" />
-    <None Include="MultipleLights.vs" />
-    <None Include="objectShader.fs" />
-    <None Include="objectShader.vs" />
-    <None Include="SingleColor.fs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComputeShader.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="SuperPoint.h" />
     <ClInclude Include="Texture.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="LearnOpenGL.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="MultipleLights.fs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

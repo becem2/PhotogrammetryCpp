@@ -50,7 +50,7 @@ The pipeline is built around four major components:
 - [x] ~~**SuperPoint — C++ / GLSL implementation**~~
 - [x] ~~**SuperPoint — GPU optimization**~~
 - [x] ~~**SuperGlue — C++ / GLSL implementation**~~
-- [x] ~~**SuperGlue — C++ / GLSL implementation**~~
+- [x] ~~**SuperGlue — GPU optimization**~~
 - [x] ~~**SuperPoint + SuperGlue integration**~~
 - [ ] Feature matching and geometric verification (RANSAC)
 - [ ] SfM — Camera pose estimation

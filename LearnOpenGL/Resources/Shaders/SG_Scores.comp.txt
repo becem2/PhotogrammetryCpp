@@ -1,0 +1,57 @@
+#version 430
+
+// Builds the (M+1) x (N+1) coupling matrix used by the optimal transport layer.
+//
+//   Z[i][j] = <mdesc0[:, i], mdesc1[:, j]> / sqrt(256)       i < M, j < N
+//   Z[i][j] = alpha (the dustbin score)                       otherwise
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(std430, binding = 0) readonly buffer Desc0Buffer { float desc0[]; };   // [256][M]
+layout(std430, binding = 1) readonly buffer Desc1Buffer { float desc1[]; };   // [256][N]
+layout(std430, binding = 2) writeonly buffer CouplingBuffer { float coupling[]; };   // [(M+1)][(N+1)]
+
+uniform int uM;
+uniform int uN;
+uniform int uDim;
+uniform float uScale;
+uniform float uAlpha;
+
+shared float tileA[16][16];
+shared float tileB[16][16];
+
+void main()
+{
+    const int lx = int(gl_LocalInvocationID.x);
+    const int ly = int(gl_LocalInvocationID.y);
+
+    const int baseJ = int(gl_WorkGroupID.x) * 16;
+    const int baseI = int(gl_WorkGroupID.y) * 16;
+
+    const int j = baseJ + lx;
+    const int i = baseI + ly;
+
+    float acc = 0.0;
+
+    for (int k0 = 0; k0 < uDim; k0 += 16)
+    {
+        const int k = k0 + ly;
+
+        tileA[ly][lx] = (k < uDim && baseI + lx < uM) ? desc0[k * uM + baseI + lx] : 0.0;
+        tileB[ly][lx] = (k < uDim && baseJ + lx < uN) ? desc1[k * uN + baseJ + lx] : 0.0;
+
+        barrier();
+
+        for (int kk = 0; kk < 16; kk++)
+        {
+            acc += tileA[kk][ly] * tileB[kk][lx];
+        }
+
+        barrier();
+    }
+
+    if (i <= uM && j <= uN)
+    {
+        coupling[i * (uN + 1) + j] = (i < uM && j < uN) ? acc * uScale : uAlpha;
+    }
+}

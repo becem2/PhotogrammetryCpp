@@ -39,6 +39,15 @@ LearnOpenGL/x64/
 # Editor/runtime state (regenerated automatically)
 imgui.ini
 
+# Pipeline data (generated or too large for git)
+LearnOpenGL/Resources/Features/
+LearnOpenGL/Resources/Matches/
+LearnOpenGL/Resources/Visualizations/
+
+# Images: ignore everything inside, but keep the folder itself
+LearnOpenGL/Resources/Images/*
+!LearnOpenGL/Resources/Images/.gitkeep
+
 # CLion
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore

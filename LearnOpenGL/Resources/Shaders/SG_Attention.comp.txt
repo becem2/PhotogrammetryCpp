@@ -1,0 +1,113 @@
+#version 430
+
+// Multi-head attention (4 heads x 64 dims), streaming softmax so the
+// Nq x Ns score matrix is never stored.
+//
+// SuperGlue splits the 256 channels with view(B, 64, 4, N), so the channel
+// of dimension d in head h is   c = d * 4 + h.
+//
+//   out[d, h, n] = sum_m softmax_m( q[:, h, n] . k[:, h, m] / 8 ) * v[d, h, m]
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0) readonly buffer QueryBuffer { float query[]; };   // [256][Nq]
+layout(std430, binding = 1) readonly buffer KeyBuffer   { float keys[];  };   // [256][Ns]
+layout(std430, binding = 2) readonly buffer ValueBuffer { float values[]; };  // [256][Ns]
+layout(std430, binding = 3) writeonly buffer OutBuffer  { float outputData[]; }; // [256][Nq]
+
+uniform int uNq;
+uniform int uNs;
+
+const int HEADS = 4;
+const int DIM = 64;
+const int TILE = 32;
+
+shared float sK[DIM * TILE];
+shared float sV[DIM * TILE];
+
+void main()
+{
+    const int lid = int(gl_LocalInvocationID.x);
+    const int n = int(gl_WorkGroupID.x) * 64 + lid;
+    const int head = int(gl_WorkGroupID.y);
+
+    const bool isValid = (n < uNq);
+
+    float q[DIM];
+    float acc[DIM];
+
+    for (int d = 0; d < DIM; d++)
+    {
+        q[d] = isValid ? query[(d * HEADS + head) * uNq + n] * 0.125 : 0.0;   // 1 / sqrt(64)
+        acc[d] = 0.0;
+    }
+
+    float runningMax = -1e30;
+    float runningSum = 0.0;
+
+    for (int m0 = 0; m0 < uNs; m0 += TILE)
+    {
+        // Cooperative load of a tile of keys and values
+        for (int idx = lid; idx < DIM * TILE; idx += 64)
+        {
+            const int d = idx / TILE;
+            const int t = idx % TILE;
+            const int m = m0 + t;
+
+            float k = 0.0;
+            float v = 0.0;
+
+            if (m < uNs)
+            {
+                const int channel = d * HEADS + head;
+                k = keys[channel * uNs + m];
+                v = values[channel * uNs + m];
+            }
+
+            sK[idx] = k;
+            sV[idx] = v;
+        }
+
+        barrier();
+
+        const int count = min(TILE, uNs - m0);
+
+        if (isValid)
+        {
+            for (int t = 0; t < count; t++)
+            {
+                float s = 0.0;
+
+                for (int d = 0; d < DIM; d++)
+                {
+                    s += q[d] * sK[d * TILE + t];
+                }
+
+                const float newMax = max(runningMax, s);
+                const float scale = exp(runningMax - newMax);
+                const float p = exp(s - newMax);
+
+                runningSum = runningSum * scale + p;
+
+                for (int d = 0; d < DIM; d++)
+                {
+                    acc[d] = acc[d] * scale + p * sV[d * TILE + t];
+                }
+
+                runningMax = newMax;
+            }
+        }
+
+        barrier();
+    }
+
+    if (isValid)
+    {
+        const float inv = 1.0 / runningSum;
+
+        for (int d = 0; d < DIM; d++)
+        {
+            outputData[(d * HEADS + head) * uNq + n] = acc[d] * inv;
+        }
+    }
+}

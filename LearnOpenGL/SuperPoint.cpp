@@ -271,18 +271,18 @@ bool SuperPoint::createShaders()
 
     grayShader = load("RGB2Gray.comp.txt");
     toTensorShader = load("ToTensor.comp.txt");
-    conv1aShader = load("Conv1aReLU.comp.txt");
-    convReLUShader = load("ConvArrayReLU.comp.txt");
-    convShader = load("ConvArray.comp.txt");
-    maxPoolShader = load("MaxPool.comp.txt");
-    descriptorL2Shader = load("DescriptorL2.comp.txt");
-    softmaxShader = load("DetectorSoftmaxHeatmap.comp.txt");
-    nmsInitShader = load("NMSInit.comp.txt");
-    nmsDilateShader = load("NMSDilate.comp.txt");
-    nmsUpdateShader = load("NMSUpdate.comp.txt");
-    thresholdShader = load("ThresholdBorder.comp.txt");
-    compactShader = load("KeypointCompact.comp.txt");
-    sampleShader = load("SampleDescriptors.comp.txt");
+    conv1aShader = load("SP_Conv1aReLU.comp.txt");
+    convReLUShader = load("SP_ConvArrayReLU.comp.txt");
+    convShader = load("SP_ConvArray.comp.txt");
+    maxPoolShader = load("SP_MaxPool.comp.txt");
+    descriptorL2Shader = load("SP_DescriptorL2.comp.txt");
+    softmaxShader = load("SP_DetectorSoftmaxHeatmap.comp.txt");
+    nmsInitShader = load("SP_NMSInit.comp.txt");
+    nmsDilateShader = load("SP_NMSDilate.comp.txt");
+    nmsUpdateShader = load("SP_NMSUpdate.comp.txt");
+    thresholdShader = load("SP_ThresholdBorder.comp.txt");
+    compactShader = load("SP_KeypointCompact.comp.txt");
+    sampleShader = load("SP_SampleDescriptors.comp.txt");
 
     return grayShader && toTensorShader && conv1aShader && convReLUShader &&
         convShader && maxPoolShader && descriptorL2Shader && softmaxShader &&

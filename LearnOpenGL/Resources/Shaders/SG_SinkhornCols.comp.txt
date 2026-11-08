@@ -1,0 +1,52 @@
+#version 430
+
+// One Sinkhorn half-step in log space (column update):
+//
+//   v[j] = log_nu[j] - logsumexp_i( Z[i][j] + u[i] )
+//
+// One thread per column; neighbouring threads read neighbouring
+// columns of the same row, so the reads are coalesced.
+
+layout(local_size_x = 64) in;
+
+layout(std430, binding = 0) readonly buffer CouplingBuffer { float coupling[]; };
+layout(std430, binding = 1) readonly buffer UBuffer { float u[]; };
+layout(std430, binding = 2) buffer VBuffer { float v[]; };
+
+uniform int uM;
+uniform int uN;
+
+void main()
+{
+    const int j = int(gl_GlobalInvocationID.x);   // 0 .. N
+
+    if (j > uN)
+    {
+        return;
+    }
+
+    const int stride = uN + 1;
+
+    float m = -1e30;
+    float s = 0.0;
+
+    for (int i = 0; i <= uM; i++)
+    {
+        const float x = coupling[i * stride + j] + u[i];
+
+        if (x > m)
+        {
+            s = s * exp(m - x) + 1.0;
+            m = x;
+        }
+        else
+        {
+            s += exp(x - m);
+        }
+    }
+
+    const float norm = -log(float(uM + uN));
+    const float logNu = (j < uN) ? norm : log(float(uM)) + norm;
+
+    v[j] = logNu - (m + log(s));
+}

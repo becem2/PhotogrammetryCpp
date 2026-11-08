@@ -1,0 +1,69 @@
+#version 430
+
+// Row-wise arg-max of the final log assignment matrix (dustbins excluded):
+//
+//   P[i][j] = Z[i][j] + u[i] + v[j] + log(M + N)
+//   indices0[i] = argmax_j P[i][j],   maxScores0[i] = max_j P[i][j]
+
+layout(local_size_x = 128) in;
+
+layout(std430, binding = 0) readonly buffer CouplingBuffer { float coupling[]; };
+layout(std430, binding = 1) readonly buffer UBuffer { float u[]; };
+layout(std430, binding = 2) readonly buffer VBuffer { float v[]; };
+layout(std430, binding = 3) writeonly buffer IndexBuffer { int indices[]; };
+layout(std430, binding = 4) writeonly buffer ScoreBuffer { float maxScores[]; };
+
+uniform int uM;
+uniform int uN;
+
+shared float sBest[128];
+shared int sIndex[128];
+
+void main()
+{
+    const int i = int(gl_WorkGroupID.x);          // 0 .. M-1
+    const int lid = int(gl_LocalInvocationID.x);
+    const int stride = uN + 1;
+
+    float best = -1e30;
+    int bestIndex = 0;
+
+    for (int j = lid; j < uN; j += 128)
+    {
+        const float x = coupling[i * stride + j] + v[j];
+
+        if (x > best)
+        {
+            best = x;
+            bestIndex = j;
+        }
+    }
+
+    sBest[lid] = best;
+    sIndex[lid] = bestIndex;
+
+    barrier();
+
+    for (int offset = 64; offset > 0; offset >>= 1)
+    {
+        if (lid < offset)
+        {
+            const float other = sBest[lid + offset];
+            const int otherIndex = sIndex[lid + offset];
+
+            if (other > sBest[lid] || (other == sBest[lid] && otherIndex < sIndex[lid]))
+            {
+                sBest[lid] = other;
+                sIndex[lid] = otherIndex;
+            }
+        }
+
+        barrier();
+    }
+
+    if (lid == 0)
+    {
+        indices[i] = sIndex[0];
+        maxScores[i] = sBest[0] + u[i] + log(float(uM + uN));
+    }
+}

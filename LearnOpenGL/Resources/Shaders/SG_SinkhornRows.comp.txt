@@ -1,0 +1,72 @@
+#version 430
+
+// One Sinkhorn half-step in log space (row update):
+//
+//   u[i] = log_mu[i] - logsumexp_j( Z[i][j] + v[j] )
+//
+// One work group per row, 128 threads reduce over the columns.
+
+layout(local_size_x = 128) in;
+
+layout(std430, binding = 0) readonly buffer CouplingBuffer { float coupling[]; };
+layout(std430, binding = 1) buffer UBuffer { float u[]; };
+layout(std430, binding = 2) readonly buffer VBuffer { float v[]; };
+
+uniform int uM;
+uniform int uN;
+
+shared float sMax[128];
+shared float sSum[128];
+
+void main()
+{
+    const int i = int(gl_WorkGroupID.x);          // 0 .. M
+    const int lid = int(gl_LocalInvocationID.x);
+    const int stride = uN + 1;
+
+    float m = -1e30;
+    float s = 0.0;
+
+    for (int j = lid; j <= uN; j += 128)
+    {
+        const float x = coupling[i * stride + j] + v[j];
+
+        if (x > m)
+        {
+            s = s * exp(m - x) + 1.0;
+            m = x;
+        }
+        else
+        {
+            s += exp(x - m);
+        }
+    }
+
+    sMax[lid] = m;
+    sSum[lid] = s;
+
+    barrier();
+
+    for (int offset = 64; offset > 0; offset >>= 1)
+    {
+        if (lid < offset)
+        {
+            const float m1 = sMax[lid];
+            const float m2 = sMax[lid + offset];
+            const float mm = max(m1, m2);
+
+            sSum[lid] = sSum[lid] * exp(m1 - mm) + sSum[lid + offset] * exp(m2 - mm);
+            sMax[lid] = mm;
+        }
+
+        barrier();
+    }
+
+    if (lid == 0)
+    {
+        const float norm = -log(float(uM + uN));
+        const float logMu = (i < uM) ? norm : log(float(uN)) + norm;
+
+        u[i] = logMu - (sMax[0] + log(sSum[0]));
+    }
+}

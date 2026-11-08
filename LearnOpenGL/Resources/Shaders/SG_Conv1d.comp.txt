@@ -1,0 +1,85 @@
+#version 430
+
+// 1x1 convolution over a [channels][N] tensor (a matrix multiply):
+//
+//   out[co][n] = bias[co] + sum_ci W[co][ci] * in[ci][n]      (optional ReLU)
+//                         (+ residual[co][n])                  (optional)
+//
+// The input can be split over two buffers (used for cat([x, message])):
+// channels [0, uSplit) come from inputA, channels [uSplit, uCin) from inputB.
+
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(std430, binding = 0) readonly buffer WeightBuffer   { float weights[];  };
+layout(std430, binding = 1) readonly buffer BiasBuffer     { float biases[];   };
+layout(std430, binding = 2) readonly buffer InputABuffer   { float inputA[];   };
+layout(std430, binding = 3) readonly buffer InputBBuffer   { float inputB[];   };
+layout(std430, binding = 4) writeonly buffer OutputBuffer  { float outputData[]; };
+layout(std430, binding = 5) readonly buffer ResidualBuffer { float residual[]; };
+
+uniform int uCin;
+uniform int uCout;
+uniform int uN;
+uniform int uSplit;
+uniform int uRelu;
+uniform int uAddResidual;
+
+shared float tileW[16][16];
+shared float tileX[16][16];
+
+void main()
+{
+    const int lx = int(gl_LocalInvocationID.x);
+    const int ly = int(gl_LocalInvocationID.y);
+
+    const int col = int(gl_GlobalInvocationID.x);   // keypoint index n
+    const int row = int(gl_GlobalInvocationID.y);   // output channel co
+
+    float acc = 0.0;
+
+    for (int k0 = 0; k0 < uCin; k0 += 16)
+    {
+        // Weight tile : W[row][k0 + lx]
+        const int kw = k0 + lx;
+        tileW[ly][lx] = (row < uCout && kw < uCin) ? weights[row * uCin + kw] : 0.0;
+
+        // Input tile : in[k0 + ly][col]
+        const int ci = k0 + ly;
+        float x = 0.0;
+
+        if (ci < uCin && col < uN)
+        {
+            x = (ci < uSplit)
+                ? inputA[ci * uN + col]
+                : inputB[(ci - uSplit) * uN + col];
+        }
+
+        tileX[ly][lx] = x;
+
+        barrier();
+
+        for (int kk = 0; kk < 16; kk++)
+        {
+            acc += tileW[ly][kk] * tileX[kk][lx];
+        }
+
+        barrier();
+    }
+
+    if (row < uCout && col < uN)
+    {
+        float v = acc + biases[row];
+
+        if (uRelu != 0)
+        {
+            v = max(v, 0.0);
+        }
+
+        if (uAddResidual != 0)
+        {
+            v += residual[row * uN + col];
+        }
+
+        outputData[row * uN + col] = v;
+    }
+}

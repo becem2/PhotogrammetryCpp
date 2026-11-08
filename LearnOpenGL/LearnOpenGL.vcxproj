@@ -157,9 +157,11 @@
     <ClCompile Include="..\..\..\..\..\..\ThirdPartyLibraries\Include\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\..\..\..\..\..\ThirdPartyLibraries\Include\imgui\imgui_widgets.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
+    <ClCompile Include="Function.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="SuperGlue.cpp" />
     <ClCompile Include="SuperPoint.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
@@ -171,7 +173,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComputeShader.h" />
+    <ClInclude Include="Function.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="SuperGlue.h" />
     <ClInclude Include="SuperPoint.h" />
     <ClInclude Include="Texture.h" />
   </ItemGroup>

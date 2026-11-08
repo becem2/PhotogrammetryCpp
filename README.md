@@ -6,7 +6,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Status-In%20Development-yellow?style=flat-square" />
-  <img src="https://img.shields.io/badge/Progress-4%2F11%20Steps-orange?style=flat-square" />
+  <img src="https://img.shields.io/badge/Progress-5%2F12%20Steps-orange?style=flat-square" />
 </p>
 
 ## About
@@ -49,6 +49,7 @@ The pipeline is built around four major components:
 
 - [x] ~~**SuperPoint — C++ / GLSL implementation**~~
 - [x] ~~**SuperPoint — GPU optimization**~~
+- [x] ~~**SuperGlue — C++ / GLSL implementation**~~
 - [x] ~~**SuperGlue — C++ / GLSL implementation**~~
 - [x] ~~**SuperPoint + SuperGlue integration**~~
 - [ ] Feature matching and geometric verification (RANSAC)

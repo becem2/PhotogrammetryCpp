@@ -177,4 +177,4 @@ private:
     GLuint maxScores1Buffer = 0;
 
     size_t capacity = 0;                   // maxKeypoints the buffers were sized for
-};
+};

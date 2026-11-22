@@ -43,6 +43,7 @@ imgui.ini
 LearnOpenGL/Resources/Features/
 LearnOpenGL/Resources/Matches/
 LearnOpenGL/Resources/Visualizations/
+LearnOpenGL/Resources/TrainingImages/
 
 # Images: ignore everything inside, but keep the folder itself
 LearnOpenGL/Resources/Images/*

@@ -883,4 +883,4 @@ bool SuperGlue::save(const std::string& path, const SuperGlueMatches& matches)
     file.close();
 
     return static_cast<bool>(file);
-}
+}

@@ -502,26 +502,19 @@ void SuperPoint::runNmsUpdate(GLuint currentMask, GLuint suppressionTexture, GLu
 }
 
 
-//-----------Feature Extraction---------//
+//-----------Shared Encoder---------//
 
-bool SuperPoint::extract(const unsigned char* rgbaPixels, SuperPointFeatures& features)
+bool SuperPoint::encode(const unsigned char* rgbaPixels)
 {
-    features = SuperPointFeatures();
-
     if (!ready) {
-        std::cerr << "SuperPoint: extract() called before a successful initialize()." << std::endl;
+        std::cerr << "SuperPoint: encode() called before a successful initialize()." << std::endl;
         return false;
     }
 
     if (rgbaPixels == nullptr) {
-        std::cerr << "SuperPoint: extract() received a null image." << std::endl;
+        std::cerr << "SuperPoint: encode() received a null image." << std::endl;
         return false;
     }
-
-    const size_t pixelCount = static_cast<size_t>(imageWidth) * imageHeight;
-
-    features.imageWidth = imageWidth;
-    features.imageHeight = imageHeight;
 
     // Ping-pong textures change size during the network, so reset them every image
     pingA->resize(imageHeight, imageWidth, 64);
@@ -621,6 +614,74 @@ bool SuperPoint::extract(const unsigned char* rgbaPixels, SuperPointFeatures& fe
     pingB->resize(height3, width3, 128);
     runConv(CONV4A, ping_a, ping_b, true, width3, height3);
     runConv(CONV4B, ping_b, ping_a, true, width3, height3);
+
+    return true;
+}
+
+
+//-----------Heatmap Only---------//
+
+bool SuperPoint::computeHeatmap(const unsigned char* rgbaPixels, std::vector<float>& heatmap)
+{
+    if (!encode(rgbaPixels)) {
+        return false;
+    }
+
+    const GLuint ping_a = pingA->getTextureID();
+    const GLuint ping_b = pingB->getTextureID();
+
+    // Detector head only: conv4b output is in pingA, pingB is only scratch here
+    pingB->resize(height3, width3, 256);
+    runConv(CONVPA, ping_a, ping_b, true, width3, height3);
+    runConv(CONVPB, ping_b, detectorTexture->getTextureID(), false, width3, height3);
+
+    softmaxShader->use();
+
+    bindImage(0, detectorTexture->getTextureID(), GL_READ_ONLY, GL_R32F, true);
+    bindImage(1, heatmapTexture->getTextureID(), GL_WRITE_ONLY, GL_R32F, false);
+
+    glDispatchCompute(groups(width3), groups(height3), 1);
+
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT);
+
+    heatmap.assign(static_cast<size_t>(imageWidth) * imageHeight, 0.0f);
+
+    glPixelStorei(GL_PACK_ALIGNMENT, 4);
+    glBindTexture(GL_TEXTURE_2D, heatmapTexture->getTextureID());
+    glGetTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_FLOAT, heatmap.data());
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return true;
+}
+
+
+//-----------Feature Extraction---------//
+
+bool SuperPoint::extract(const unsigned char* rgbaPixels, SuperPointFeatures& features)
+{
+    features = SuperPointFeatures();
+
+    if (!ready) {
+        std::cerr << "SuperPoint: extract() called before a successful initialize()." << std::endl;
+        return false;
+    }
+
+    if (rgbaPixels == nullptr) {
+        std::cerr << "SuperPoint: extract() received a null image." << std::endl;
+        return false;
+    }
+
+    const size_t pixelCount = static_cast<size_t>(imageWidth) * imageHeight;
+
+    features.imageWidth = imageWidth;
+    features.imageHeight = imageHeight;
+
+    if (!encode(rgbaPixels)) {
+        return false;
+    }
+
+    const GLuint ping_a = pingA->getTextureID();
+    const GLuint ping_b = pingB->getTextureID();
 
 
     // =====================================================================
@@ -884,4 +945,18 @@ bool SuperPoint::save(const std::string& path, const SuperPointFeatures& feature
     file.close();
 
     return static_cast<bool>(file);
+}
+
+
+//-----------Layer Info (used by the trainer)---------//
+
+size_t SuperPoint::layerWeightCount(int layer)
+{
+    return static_cast<size_t>(kLayerCout[layer]) * kLayerCin[layer] * kLayerK[layer] * kLayerK[layer];
+}
+
+
+size_t SuperPoint::layerBiasCount(int layer)
+{
+    return static_cast<size_t>(kLayerCout[layer]);
 }

@@ -41,7 +41,7 @@ public:
 
     //-----------File System---------//
 
-    // Collects every .png / .jpg / .jpeg file of the folder, sorted by path.
+    // Collects every .png / .jpg / .jpeg / .bmp file of the folder, sorted by path.
     // totalFileCount receives the number of regular files found (images or not).
     // Returns false (after printing the reason) if the folder does not exist.
     static bool collectImagePaths(const std::string& folderPath,
@@ -88,4 +88,4 @@ public:
         ImageSize previewSize, float scaleX, float scaleY,
         const SuperPointFeatures& features0, const SuperPointFeatures& features1,
         const SuperGlueMatches& matches);
-};
+};

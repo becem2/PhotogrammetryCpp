@@ -226,7 +226,8 @@ bool Function::collectImagePaths(const std::string& folderPath,
 
         if (extension == ".png" ||
             extension == ".jpg" ||
-            extension == ".jpeg") {
+            extension == ".jpeg" ||
+            extension == ".bmp") {
 
             imagePaths.push_back(imageEntry.path().string());
         }
@@ -515,4 +516,4 @@ bool Function::saveMatchVisualization(const std::string& path,
     }
 
     return stbi_write_jpg(path.c_str(), canvasWidth, canvasHeight, 3, canvas.data(), 92) != 0;
-}
+}

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -156,28 +156,49 @@
     <ClCompile Include="..\..\..\..\..\..\ThirdPartyLibraries\Include\imgui\imgui_impl_opengl3.cpp" />
     <ClCompile Include="..\..\..\..\..\..\ThirdPartyLibraries\Include\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\..\..\..\..\..\ThirdPartyLibraries\Include\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="CommandLine.cpp" />
     <ClCompile Include="ComputeShader.cpp" />
     <ClCompile Include="Function.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Pipeline.cpp" />
+    <ClCompile Include="PseudoLabels.cpp" />
     <ClCompile Include="stb_image.cpp" />
     <ClCompile Include="SuperGlue.cpp" />
     <ClCompile Include="SuperPoint.cpp" />
+    <ClCompile Include="SuperPointTrainer.cpp" />
+    <ClCompile Include="TiledExtractor.cpp" />
+    <ClCompile Include="TrainDetector.cpp" />
     <ClCompile Include="Texture.cpp" />
+    <ClCompile Include="TrainingMode.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Basic.fs" />
     <None Include="Basic.vs" />
     <None Include="LearnOpenGL.vcxproj.fixed" />
     <None Include="LearnOpenGL.vcxproj.fixed2" />
+    <None Include="MODE_SELECTION_GUIDE.md" />
+    <None Include="QUICK_START_TRAINING.md" />
+    <None Include="TRAINING_SETUP_SUMMARY.md" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CommandLine.h" />
     <ClInclude Include="ComputeShader.h" />
     <ClInclude Include="Function.h" />
+    <ClInclude Include="Pipeline.h" />
+    <ClInclude Include="PseudoLabels.h" />
+    <ClInclude Include="Settings.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="SuperGlue.h" />
     <ClInclude Include="SuperPoint.h" />
+    <ClInclude Include="SuperPointTrainer.h" />
+    <ClInclude Include="TiledExtractor.h" />
+    <ClInclude Include="TrainDetector.h" />
+    <ClInclude Include="TrainingData.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="TrainingMode.h" />
+    <ClInclude Include="Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -90,6 +90,31 @@ public:
     bool extract(const unsigned char* rgbaPixels, SuperPointFeatures& features);
 
 
+    // Runs only the preprocessing and the shared encoder (up to conv4b).
+    // The 128-channel, 1/8-resolution feature map stays in encoderFeatureTexture()
+    // until the next encode() / extract() call. Used by SuperPointTrainer.
+    bool encode(const unsigned char* rgbaPixels);
+
+    GLuint encoderFeatureTexture() const { return pingA ? pingA->getTextureID() : 0; }
+
+    // Detector heatmap only (preprocessing + encoder + detector head + softmax, no NMS,
+    // no descriptors). heatmap receives width * height floats in [0, 1], row-major.
+    // Used by the pseudo-label generator (Homographic Adaptation).
+    bool computeHeatmap(const unsigned char* rgbaPixels, std::vector<float>& heatmap);
+
+
+    // Network layer access (SSBOs hold [Cout][Cin][K][K] weights and [Cout] biases)
+    static constexpr int ConvPaLayer = 10;
+    static constexpr int ConvPbLayer = 11;
+    static constexpr int LayerCount = 12;
+
+    GLuint weightBuffer(int layer) const { return weightsBuffer[layer]; }
+    GLuint biasBuffer(int layer) const { return biasesBuffer[layer]; }
+
+    static size_t layerWeightCount(int layer);
+    static size_t layerBiasCount(int layer);
+
+
     // Binary format: [magic, version, N, 256] (uint32), N x (x, y, score) floats,
     // then N x 256 descriptor floats.
     static bool save(const std::string& path, const SuperPointFeatures& features);
@@ -178,8 +203,6 @@ private:
     GLint sampleKeypointCountLocation = -1;
 
     // Buffers
-    static constexpr int LayerCount = 12;
-
     GLuint weightsBuffer[LayerCount] = {};
     GLuint biasesBuffer[LayerCount] = {};
     bool weightBuffersCreated = false;
@@ -187,4 +210,4 @@ private:
     GLuint keypointCounterBuffer = 0;
     GLuint keypointCandidateBuffer = 0;
     GLuint sampledDescriptorBuffer = 0;
-};
+};
